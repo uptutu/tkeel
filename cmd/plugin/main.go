@@ -7,28 +7,29 @@ import (
 
 	"github.com/tkeel-io/tkeel/logger"
 	"github.com/tkeel-io/tkeel/module"
-	"github.com/tkeel-io/tkeel/module/auth"
-	"github.com/tkeel-io/tkeel/module/auth/api"
+	"github.com/tkeel-io/tkeel/module/plugin"
 	"github.com/tkeel-io/tkeel/version"
 )
 
 var (
-	_log = logger.NewLogger("tKeel.auth")
+	_log = logger.NewLogger("tKeel.plugins")
 )
 
 func main() {
 	logger.SetPluginVersion(version.Version())
-
-	_log.Infof("[tKeel] starting auth -- version %s -- commit %s", version.Version(), version.Commit())
-	plugin, err := module.NewPluginFromFlags()
+	_log.Infof("[tKeel] starting plugins -- version %s -- commit %s", version.Version(), version.Commit())
+	p, err := module.NewPluginFromFlags()
 	if err != nil {
 		_log.Fatalf("error init plugin: %s", err)
 		return
 	}
+	m, err := plugin.New(p)
+	if err != nil {
+		_log.Fatalf("error new plugins: %s", err)
+		return
+	}
 
-	pluginAuth := auth.NewPluginAuth(plugin)
-	api.InitEntityIdp("./id_rsa", "./id_rsa.pem")
-	pluginAuth.Run()
+	m.Run()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, os.Interrupt)

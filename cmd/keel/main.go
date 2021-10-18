@@ -5,10 +5,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/tkeel-io/tkeel/pkg/logger"
-	"github.com/tkeel-io/tkeel/pkg/plugin"
-	"github.com/tkeel-io/tkeel/pkg/plugin/keel"
-	"github.com/tkeel-io/tkeel/pkg/version"
+	"github.com/tkeel-io/tkeel/logger"
+	"github.com/tkeel-io/tkeel/module"
+	"github.com/tkeel-io/tkeel/module/keel"
+	"github.com/tkeel-io/tkeel/version"
 )
 
 var (
@@ -17,16 +17,15 @@ var (
 
 func main() {
 	logger.SetPluginVersion(version.Version())
-	log.Infof("starting tKeel keel -- version %s -- commit %s", version.Version(), version.Commit())
-	plugin, err := plugin.FromFlags()
+	log.Infof("[tKeel] starting keel -- version %s -- commit %s", version.Version(), version.Commit())
+	p, err := module.NewPluginFromFlags()
 	if err != nil {
 		log.Fatalf("error init plugin: %s", err)
-		return
 	}
-	g, err := keel.New(plugin)
+
+	g, err := keel.New(p)
 	if err != nil {
 		log.Fatalf("error new keel: %s", err)
-		return
 	}
 
 	g.Run()
