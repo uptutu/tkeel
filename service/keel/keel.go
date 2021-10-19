@@ -7,22 +7,22 @@ import (
 	"math/big"
 	"net/http"
 
+	"github.com/tkeel-io/tkeel"
 	"github.com/tkeel-io/tkeel/keel"
 	"github.com/tkeel-io/tkeel/logger"
-	"github.com/tkeel-io/tkeel/module"
 	"github.com/tkeel-io/tkeel/openapi"
 	"github.com/tkeel-io/tkeel/readutil"
 )
 
 var (
-	log = logger.NewLogger("keel.plugin.keel")
+	_log = logger.NewLogger("keel.service.keel")
 )
 
 type Keel struct {
-	plugin *module.Plugin
+	plugin *tkeel.Plugin
 }
 
-func New(p *module.Plugin) (*Keel, error) {
+func New(p *tkeel.Plugin) (*Keel, error) {
 	return &Keel{
 		plugin: p,
 	}, nil
@@ -31,10 +31,10 @@ func New(p *module.Plugin) (*Keel, error) {
 func (k *Keel) Run() {
 	pid := k.plugin.Conf().Plugin.ID
 	if pid == "" {
-		log.Fatal("error plugin id: %s", pid)
+		_log.Fatal("error plugin id: %s", pid)
 	}
 	if pid != "keel" {
-		log.Fatalf("error plugin id: %s should be keel", pid)
+		_log.Fatalf("error plugin id: %s should be keel", pid)
 	}
 
 	go func() {
@@ -46,11 +46,11 @@ func (k *Keel) Run() {
 		})
 		err := k.plugin.Run(&openapi.API{Endpoint: "/", H: k.Route})
 		if err != nil {
-			log.Fatalf("error plugin run: %s", err)
+			_log.Fatalf("error plugin run: %s", err)
 			return
 		}
 	}()
-	log.Debug("keel running")
+	_log.Debug("keel running")
 }
 
 func (k *Keel) Route(e *openapi.APIEvent) {
@@ -58,7 +58,7 @@ func (k *Keel) Route(e *openapi.APIEvent) {
 	path := e.HTTPReq.RequestURI
 	next, err := checkRoutePath(path)
 	if err != nil {
-		log.Error(err)
+		_log.Error(err)
 		http.Error(e, "bad request", http.StatusBadRequest)
 		return
 	}
@@ -68,31 +68,31 @@ func (k *Keel) Route(e *openapi.APIEvent) {
 
 	pluginID, err := auth(e)
 	if err != nil {
-		log.Errorf("error auth: %s", err)
+		_log.Errorf("error auth: %s", err)
 		http.Error(e, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	log.Debugf("route plugin(%s) request %s", pluginID, e.HTTPReq.RequestURI)
+	_log.Debugf("route plugin(%s) request %s", pluginID, e.HTTPReq.RequestURI)
 
 	// find upstream plugin.
 	upPluginID, endpoint, err := getUpstreamPlugin(e.HTTPReq.Context(), pluginID, path)
 	if err != nil {
-		log.Errorf("error request(%s): %s", path, err)
+		_log.Errorf("error request(%s): %s", path, err)
 		http.Error(e, err.Error(), http.StatusBadRequest)
 	}
 
 	// check upstream plugin.
 	err = checkPluginStatus(e.HTTPReq.Context(), upPluginID)
 	if err != nil {
-		log.Errorf("error check plugin(%s) status: %s", upPluginID, err)
+		_log.Errorf("error check plugin(%s) status: %s", upPluginID, err)
 		http.Error(e, "bad request", http.StatusBadRequest)
 		return
 	}
 
 	resp, err := proxy(e.HTTPReq, e.ResponseWriter, upPluginID, endpoint)
 	if err != nil {
-		log.Errorf("error proxy: %s", err)
+		_log.Errorf("error proxy: %s", err)
 		http.Error(e, err.Error(), http.StatusBadGateway)
 		return
 	}
@@ -100,15 +100,15 @@ func (k *Keel) Route(e *openapi.APIEvent) {
 	copyHeader(e.Header(), resp.Header)
 	respBodyByte, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("error get response body: %s", err)
+		_log.Errorf("error get response body: %s", err)
 		http.Error(e, "bad request", http.StatusBadRequest)
 		return
 	}
 	if _, err = e.Write(respBodyByte); err != nil {
-		log.Errorf("error response write: %s", err)
+		_log.Errorf("error response write: %s", err)
 		return
 	}
-	log.Debugf("route success.")
+	_log.Debugf("route success.")
 }
 
 func (k *Keel) identify() (*openapi.IdentifyResp, error) {
@@ -133,7 +133,7 @@ func (k *Keel) identify() (*openapi.IdentifyResp, error) {
 
 func (k *Keel) addonsIdentify(air *openapi.AddonsIdentifyReq) (*openapi.AddonsIdentifyResp, error) {
 	endpointReq := air.Endpoint[0]
-	xKeelStr := getRandBoolStr()
+	xKeelStr := genBoolStr()
 
 	resp, err := keel.CallKeel(context.TODO(), air.Plugin.ID, endpointReq.Endpoint,
 		http.MethodGet, &keel.CallReq{
@@ -156,7 +156,7 @@ func (k *Keel) addonsIdentify(air *openapi.AddonsIdentifyReq) (*openapi.AddonsId
 			If it is not included, it will judge whether the request is valid.`),
 		})
 	if err != nil {
-		log.Errorf("error addons identify: %w", err)
+		_log.Errorf("error addons identify: %w", err)
 		return &openapi.AddonsIdentifyResp{
 			CommonResult: openapi.BadRequestResult(resp.Status),
 		}, nil
@@ -164,12 +164,12 @@ func (k *Keel) addonsIdentify(air *openapi.AddonsIdentifyReq) (*openapi.AddonsId
 	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
-			log.Errorf("error response body close: %s", err)
+			_log.Errorf("error response body close: %s", err)
 		}
 	}()
 	result := &openapi.CommonResult{}
 	if err := readutil.ReaderToJSON(resp.Body, result); err != nil {
-		log.Errorf("error read addons identify(%s/%s/%s) resp: %s",
+		_log.Errorf("error read addons identify(%s/%s/%s) resp: %s",
 			air.Plugin.ID, endpointReq.Endpoint, endpointReq.AddonsPoint, err.Error())
 		return &openapi.AddonsIdentifyResp{
 			CommonResult: openapi.BadRequestResult(err.Error()),
@@ -181,17 +181,17 @@ func (k *Keel) addonsIdentify(air *openapi.AddonsIdentifyReq) (*openapi.AddonsId
 			CommonResult: openapi.SuccessResult(),
 		}, nil
 	}
-	log.Errorf("error identify(%s/%s/%s) resp: %v",
+	_log.Errorf("error identify(%s/%s/%s) resp: %v",
 		air.Plugin.ID, endpointReq.Endpoint, endpointReq.AddonsPoint, result)
 	return &openapi.AddonsIdentifyResp{
 		CommonResult: openapi.BadRequestResult(resp.Status),
 	}, nil
 }
 
-func getRandBoolStr() string {
+func genBoolStr() string {
 	n, err := rand.Int(rand.Reader, big.NewInt(100))
 	if err != nil {
-		log.Errorf("error rand: %w", err)
+		_log.Errorf("error rand: %w", err)
 		return "False"
 	}
 	if n.Int64()%2 == 1 {

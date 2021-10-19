@@ -5,9 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/tkeel-io/tkeel"
 	"github.com/tkeel-io/tkeel/logger"
-	"github.com/tkeel-io/tkeel/module"
-	"github.com/tkeel-io/tkeel/module/plugin"
+	"github.com/tkeel-io/tkeel/service/plugin"
 	"github.com/tkeel-io/tkeel/version"
 )
 
@@ -18,7 +18,7 @@ var (
 func main() {
 	logger.SetPluginVersion(version.Version())
 	_log.Infof("[tKeel] starting plugins -- version %s -- commit %s", version.Version(), version.Commit())
-	p, err := module.NewPluginFromFlags()
+	p, err := tkeel.NewPluginFromFlags()
 	if err != nil {
 		_log.Fatalf("error init plugin: %s", err)
 		return

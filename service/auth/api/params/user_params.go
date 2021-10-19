@@ -1,7 +1,7 @@
 package params
 
 import (
-	"github.com/tkeel-io/tkeel/module/auth/model"
+	"github.com/tkeel-io/tkeel/service/auth/model"
 )
 
 const (

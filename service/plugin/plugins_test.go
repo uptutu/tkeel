@@ -5,17 +5,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tkeel-io/tkeel/module"
+	"github.com/tkeel-io/tkeel"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var pp *module.Plugin
+var pp *tkeel.Plugin
 
 func TestMain(m *testing.M) {
 	os.Setenv("PLUGIN_ID", "plugins")
 	os.Setenv("PLUGIN_HTTP_PORT", "8082")
-	pp, _ = module.NewPluginFromFlags()
+	pp, _ = tkeel.NewPluginFromFlags()
 	m.Run()
 	os.Exit(0)
 }

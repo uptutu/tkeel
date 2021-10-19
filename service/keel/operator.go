@@ -15,7 +15,7 @@ import (
 
 func auth(e *openapi.APIEvent) (string, error) {
 	if ok := e.HTTPReq.Header.Get("x-keel"); ok != "" {
-		log.Debugf("self request")
+		_log.Debugf("self request")
 		return "keel", nil
 	}
 	// get plugin id.
@@ -24,7 +24,7 @@ func auth(e *openapi.APIEvent) (string, error) {
 		return pID, fmt.Errorf("error get plugin id from request: %w", err)
 	}
 	if pID != "" {
-		log.Debug("internal flow")
+		_log.Debug("internal flow")
 		return pID, nil
 	}
 	if err := externalPreRouteCheck(e.HTTPReq.Context(), e.HTTPReq); err != nil {
@@ -66,7 +66,7 @@ func getUpstreamPlugin(ctx context.Context, pID, path string) (string, string, e
 	}
 
 	if upstreamPath == "" {
-		log.Debugf("not found registered addons: %s %s", pID, path)
+		_log.Debugf("not found registered addons: %s %s", pID, path)
 		return "", "", errors.New("not found")
 	}
 	upPluginID, endpoint := keel.DecodeRoute(upstreamPath)
@@ -114,23 +114,23 @@ func externalPreRouteCheck(ctx context.Context, req *http.Request) error {
 	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
-			log.Errorf("error response body close: %s", err)
+			_log.Errorf("error response body close: %s", err)
 		}
 	}()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
-			log.Debugf("not found registered addons point(externalPreRouteCheck)")
+			_log.Debugf("not found registered addons point(externalPreRouteCheck)")
 			return nil
 		}
 		return errors.New(resp.Status)
 	}
 	result := &openapi.CommonResult{}
 	if err := readutil.ReaderToJSON(resp.Body, result); err != nil {
-		log.Errorf("error read externalPreRouteCheck func: %w", err)
+		_log.Errorf("error read externalPreRouteCheck func: %w", err)
 		return fmt.Errorf("error read externalPreRouteCheck func: %w", err)
 	}
 	if result.Ret != 0 {
-		log.Errorf("error externalPreRouteCheck: %s", result.Msg)
+		_log.Errorf("error externalPreRouteCheck: %s", result.Msg)
 		return errors.New(result.Msg)
 	}
 	return nil
@@ -143,7 +143,7 @@ func checkRoutePath(path string) (bool, error) {
 		return false, errors.New("error invaild path: /")
 	}
 	if strings.HasPrefix(path, "/dapr") {
-		log.Debugf("dapr sidecar request: %s", path)
+		_log.Debugf("dapr sidecar request: %s", path)
 		return false, nil
 	}
 	return true, nil
@@ -172,7 +172,7 @@ func proxy(req *http.Request, respWrite http.ResponseWriter, pluginID, endpoint 
 		return nil, fmt.Errorf("error request(%s/%s/%s) : %w", pluginID, endpoint,
 			req.Method, err)
 	}
-	log.Debugf("req(%s/%s) body(%s) -->resp(%s)",
+	_log.Debugf("req(%s/%s) body(%s) -->resp(%s)",
 		pluginID, endpoint, bodyByte, resp.Status)
 	return resp, nil
 }

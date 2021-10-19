@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/tkeel-io/tkeel/logger"
-	"github.com/tkeel-io/tkeel/module/auth/api/params"
-	"github.com/tkeel-io/tkeel/module/auth/model"
 	"github.com/tkeel-io/tkeel/openapi"
 	"github.com/tkeel-io/tkeel/readutil"
+	"github.com/tkeel-io/tkeel/service/auth/api/params"
+	"github.com/tkeel-io/tkeel/service/auth/model"
 
 	"github.com/google/uuid"
 )

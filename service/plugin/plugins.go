@@ -8,17 +8,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/tkeel-io/tkeel"
 	"github.com/tkeel-io/tkeel/envutil"
 	"github.com/tkeel-io/tkeel/keel"
 	"github.com/tkeel-io/tkeel/logger"
-	"github.com/tkeel-io/tkeel/module"
 	"github.com/tkeel-io/tkeel/openapi"
 	"github.com/tkeel-io/tkeel/readutil"
 	"github.com/tkeel-io/tkeel/token"
 )
 
 var (
-	log = logger.NewLogger("keel.plugin.plugins")
+	log = logger.NewLogger("keel.service.plugins")
 
 	pluginsScrapeInterval = flag.String("plugins-scrape-interval", "30m",
 		"The interval for the plugins to scrape the status of the registered plugin")
@@ -33,10 +33,10 @@ type reqPlugin struct {
 }
 
 type Manager struct {
-	p *module.Plugin
+	p *tkeel.Plugin
 }
 
-func New(p *module.Plugin) (*Manager, error) {
+func New(p *tkeel.Plugin) (*Manager, error) {
 	return &Manager{
 		p: p,
 	}, nil

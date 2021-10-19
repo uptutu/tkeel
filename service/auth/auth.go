@@ -3,23 +3,23 @@ package auth
 import (
 	"time"
 
+	"github.com/tkeel-io/tkeel"
 	"github.com/tkeel-io/tkeel/logger"
-	"github.com/tkeel-io/tkeel/module"
-	"github.com/tkeel-io/tkeel/module/auth/api"
-	"github.com/tkeel-io/tkeel/module/auth/model"
 	"github.com/tkeel-io/tkeel/openapi"
+	"github.com/tkeel-io/tkeel/service/auth/api"
+	"github.com/tkeel-io/tkeel/service/auth/model"
 )
 
 var (
-	log = logger.NewLogger("Keel.PluginAuth")
+	_log = logger.NewLogger("keel.service.auth")
 )
 
 type PluginAuth struct {
-	p   *module.Plugin
+	p   *tkeel.Plugin
 	api api.API
 }
 
-func NewPluginAuth(p *module.Plugin) *PluginAuth {
+func NewPluginAuth(p *tkeel.Plugin) *PluginAuth {
 	authAPI := api.NewAPI()
 	return &PluginAuth{p, authAPI}
 }
@@ -27,10 +27,10 @@ func NewPluginAuth(p *module.Plugin) *PluginAuth {
 func (p *PluginAuth) Run() {
 	pluginID := p.p.Conf().Plugin.ID
 	if pluginID == "" {
-		log.Fatalf("error plugin id: %s", pluginID)
+		_log.Fatalf("error plugin id: %s", pluginID)
 	}
 	if pluginID != "auth" {
-		log.Fatalf("error plugin id: %s should be auth", pluginID)
+		_log.Fatalf("error plugin id: %s should be auth", pluginID)
 	}
 	go func() {
 		err := p.p.Run([]*openapi.API{
@@ -46,7 +46,7 @@ func (p *PluginAuth) Run() {
 			{Endpoint: "/token/valid", H: p.api.TokenValid},
 		}...)
 		if err != nil {
-			log.Fatalf("error plugin run: %s", err)
+			_log.Fatalf("error plugin run: %s", err)
 			return
 		}
 	}()

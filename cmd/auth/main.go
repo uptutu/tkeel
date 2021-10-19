@@ -5,10 +5,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/tkeel-io/tkeel"
 	"github.com/tkeel-io/tkeel/logger"
-	"github.com/tkeel-io/tkeel/module"
-	"github.com/tkeel-io/tkeel/module/auth"
-	"github.com/tkeel-io/tkeel/module/auth/api"
+	"github.com/tkeel-io/tkeel/service/auth"
+	"github.com/tkeel-io/tkeel/service/auth/api"
 	"github.com/tkeel-io/tkeel/version"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	logger.SetPluginVersion(version.Version())
 
 	_log.Infof("[tKeel] starting auth -- version %s -- commit %s", version.Version(), version.Commit())
-	plugin, err := module.NewPluginFromFlags()
+	plugin, err := tkeel.NewPluginFromFlags()
 	if err != nil {
 		_log.Fatalf("error init plugin: %s", err)
 		return
