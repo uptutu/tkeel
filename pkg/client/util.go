@@ -58,3 +58,5 @@ func DaprInvokeJSON(ctx context.Context, c dapr.Client, appID, methodName, verb 
 	}
 	return nil
 }
+
+// Test.
